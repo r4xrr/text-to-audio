@@ -1,5 +1,4 @@
-Mickey, [05-06-2025 09:47]
-// चार्ट इनिशियलाइज़ करें
+
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('niftyChart').getContext('2d');
     
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // नेविगेशन टैब्स पर क्लिक करने का इवेंट
+    
     const navLinks = document.querySelectorAll('nav a');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
