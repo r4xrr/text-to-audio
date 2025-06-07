@@ -1,0 +1,119 @@
+Mickey, [05-06-2025 09:47]
+// चार्ट इनिशियलाइज़ करें
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('niftyChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['9:15', '10:00', '11:00', '12:00', '1:00', '2:00', '3:00', '3:30'],
+            datasets: [{
+                label: 'NIFTY 50',
+                data: [22150, 22180, 22200, 22230, 22210, 22225, 22240, 22215],
+                borderColor: '#2962ff',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    // नेविगेशन टैब्स पर क्लिक करने का इवेंट
+    const navLinks = document.querySelectorAll('nav a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+});
+
+Mickey, [07-06-2025 08:14]
+setTimeout(() => {
+                    statusMsg.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Play the speech
+            playBtn.addEventListener('click', function() {
+                if (textInput.value.trim() === '') {
+                    showStatus('Please enter some text first.', 'error');
+                    return;
+                }
+                
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+                
+                const selectedVoice = voiceSelect.selectedOptions[0].getAttribute('data-name');
+                const voices = synth.getVoices();
+                const voice = voices.find(v => v.name === selectedVoice);
+                
+                utterance = new SpeechSynthesisUtterance(textInput.value);
+                
+                if (voice) {
+                    utterance.voice = voice;
+                }
+                
+                utterance.rate = parseFloat(rateSelect.value);
+                utterance.pitch = parseFloat(pitchSelect.value);
+                
+                // Enable stop button
+                stopBtn.disabled = false;
+                downloadBtn.disabled = true;
+                
+                // Set up event listeners
+                utterance.onend = function() {
+                    stopBtn.disabled = true;
+                    downloadBtn.disabled = false;
+                    showStatus('Speech completed successfully!', 'success');
+                };
+                
+                utterance.onerror = function(event) {
+                    stopBtn.disabled = true;
+                    showStatus('An error occurred: ' + event.error, 'error');
+                };
+                
+                // Speak the text
+                synth.speak(utterance);
+                showStatus('Speaking...', 'success');
+            });
+            
+            // Stop the speech
+            stopBtn.addEventListener('click', function() {
+                if (synth.speaking) {
+                    synth.cancel();
+                    stopBtn.disabled = true;
+                    showStatus('Speech stopped.', 'error');
+                }
+            });
+            
+            // Download the audio
+            downloadBtn.addEventListener('click', function() {
+                if (!utterance) {
+                    showStatus('No speech to download. Please play first.', 'error');
+                    return;
+                }
+                
+                // Note: The Web Speech API doesn't directly support audio capture
+                // This is a limitation - in a real app you'd need a server-side solution
+                showStatus('Download requires server-side processing. Try recording your browser audio with external tools.', 'error');
+                
+                // Alternative: Use the Web Audio API (more complex implementation needed)
+                // This would require setting up a complete audio capture system
+            });
+            
+            // Check for text input
+            textInput.addEventListener('input', function() {
+                if (textInput.value.trim() === '') {
+                    playBtn.disabled = true;
+                } else {
+                    playBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
