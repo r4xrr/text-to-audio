@@ -1,117 +1,352 @@
-
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('niftyChart').getContext('2d');
-    
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['9:15', '10:00', '11:00', '12:00', '1:00', '2:00', '3:00', '3:30'],
-            datasets: [{
-                label: 'NIFTY 50',
-                data: [22150, 22180, 22200, 22230, 22210, 22225, 22240, 22215],
-                borderColor: '#2962ff',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Audio Converter</title>
+    <style>
+        /* CSS Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-    });
 
-    
-    const navLinks = document.querySelectorAll('nav a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            navLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-});
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
 
-Mickey, [07-06-2025 08:14]
-setTimeout(() => {
-                    statusMsg.style.display = 'none';
-                }, 5000);
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+        }
+
+        .converter-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            background-color: #fff;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .play-btn {
+            background-color: #2ecc71;
+        }
+
+        .play-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .download-btn {
+            background-color: #e74c3c;
+        }
+
+        .download-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .loading {
+            background-color: #fffde7;
+            color: #f39c12;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2ecc71;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #e74c3c;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
             }
             
-            // Play the speech
+            .voice-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text to Audio Converter</h1>
+        <p class="description">Convert any text to speech and download as an audio file</p>
+        
+        <div class="converter-box">
+            <textarea id="text-input" placeholder="Enter your text here..."></textarea>
+            
+            <div class="controls">
+                <div class="voice-controls">
+                    <select id="voice-select">
+                        <option value="">Select a voice...</option>
+                    </select>
+                    
+                    <select id="rate-select">
+                        <option value="0.5">Slow Speed</option>
+                        <option value="1" selected>Normal Speed</option>
+                        <option value="1.5">Fast Speed</option>
+                        <option value="2">Very Fast</option>
+                    </select>
+                    
+                    <select id="pitch-select">
+                        <option value="0.5">Low Pitch</option>
+                        <option value="1" selected>Normal Pitch</option>
+                        <option value="1.5">High Pitch</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="play-btn" class="play-btn" disabled>Play</button>
+                    <button id="download-btn" class="download-btn" disabled>Download</button>
+                </div>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Text to Audio Converter &copy; 2023 | Using Web Speech API</p>
+    </footer>
+
+    <script>
+        // JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('text-input');
+            const voiceSelect = document.getElementById('voice-select');
+            const rateSelect = document.getElementById('rate-select');
+            const pitchSelect = document.getElementById('pitch-select');
+            const playBtn = document.getElementById('play-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const statusDiv = document.getElementById('status');
+            
+            let voices = [];
+            let audioContext;
+            let mediaRecorder;
+            let audioChunks = [];
+            let isPlaying = false;
+            let speechSynthesisUtterance;
+            
+            // Check browser support
+            if (!('speechSynthesis' in window) || !('webkitSpeechRecognition' in window)) {
+                statusDiv.textContent = "Your browser doesn't support the Web Speech API. Please try Chrome or Edge.";
+                statusDiv.className = "status error";
+                statusDiv.style.display = "block";
+                return;
+            }
+            
+            // Initialize voices
+            function loadVoices() {
+                voices = window.speechSynthesis.getVoices();
+                voiceSelect.innerHTML = '<option value="">Select a voice...</option>';
+                
+                voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.value = voice.name;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+            }
+            
+            // Load voices when they become available
+            speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+            
+            // Enable/disable buttons based on text input
+            textInput.addEventListener('input', function() {
+                const hasText = textInput.value.trim().length > 0;
+                playBtn.disabled = !hasText;
+                downloadBtn.disabled = !hasText;
+            });
+            
+            // Play the text as audio
             playBtn.addEventListener('click', function() {
-                if (textInput.value.trim() === '') {
-                    showStatus('Please enter some text first.', 'error');
+                if (isPlaying) {
+                    window.speechSynthesis.cancel();
+                    isPlaying = false;
+                    playBtn.textContent = 'Play';
                     return;
                 }
                 
-                if (synth.speaking) {
-                    synth.cancel();
+                const text = textInput.value.trim();
+                if (!text) return;
+                
+                const selectedVoiceName = voiceSelect.value;
+                const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+                const rate = parseFloat(rateSelect.value);
+                const pitch = parseFloat(pitchSelect.value);
+                
+                speechSynthesisUtterance = new SpeechSynthesisUtterance(text);
+                
+                if (selectedVoice) {
+                    speechSynthesisUtterance.voice = selectedVoice;
                 }
                 
-                const selectedVoice = voiceSelect.selectedOptions[0].getAttribute('data-name');
-                const voices = synth.getVoices();
-                const voice = voices.find(v => v.name === selectedVoice);
+                speechSynthesisUtterance.rate = rate;
+                speechSynthesisUtterance.pitch = pitch;
                 
-                utterance = new SpeechSynthesisUtterance(textInput.value);
-                
-                if (voice) {
-                    utterance.voice = voice;
-                }
-                
-                utterance.rate = parseFloat(rateSelect.value);
-                utterance.pitch = parseFloat(pitchSelect.value);
-                
-                // Enable stop button
-                stopBtn.disabled = false;
-                downloadBtn.disabled = true;
-                
-                // Set up event listeners
-                utterance.onend = function() {
-                    stopBtn.disabled = true;
-                    downloadBtn.disabled = false;
-                    showStatus('Speech completed successfully!', 'success');
+                speechSynthesisUtterance.onstart = function() {
+                    isPlaying = true;
+                    playBtn.textContent = 'Stop';
+                    statusDiv.textContent = "Playing audio...";
+                    statusDiv.className = "status loading";
+                    statusDiv.style.display = "block";
                 };
                 
-                utterance.onerror = function(event) {
-                    stopBtn.disabled = true;
-                    showStatus('An error occurred: ' + event.error, 'error');
+                speechSynthesisUtterance.onend = function() {
+                    isPlaying = false;
+                    playBtn.textContent = 'Play';
+                    statusDiv.textContent = "Playback completed!";
+                    statusDiv.className = "status success";
+                    setTimeout(() => {
+                        statusDiv.style.display = "none";
+                    }, 3000);
                 };
                 
-                // Speak the text
-                synth.speak(utterance);
-                showStatus('Speaking...', 'success');
-            });
-            
-            // Stop the speech
-            stopBtn.addEventListener('click', function() {
-                if (synth.speaking) {
-                    synth.cancel();
-                    stopBtn.disabled = true;
-                    showStatus('Speech stopped.', 'error');
-                }
+                speechSynthesisUtterance.onerror = function(event) {
+                    isPlaying = false;
+                    playBtn.textContent = 'Play';
+                    statusDiv.textContent = "Error: " + event.error;
+                    statusDiv.className = "status error";
+                };
+                
+                window.speechSynthesis.speak(speechSynthesisUtterance);
             });
             
             // Download the audio
-            downloadBtn.addEventListener('click', function() {
-                if (!utterance) {
-                    showStatus('No speech to download. Please play first.', 'error');
-                    return;
+            downloadBtn.addEventListener('click', async function() {
+                const text = textInput.value.trim();
+                if (!text) return;
+                
+                statusDiv.textContent = "Preparing audio for download...";
+                statusDiv.className = "status loading";
+                statusDiv.style.display = "block";
+                
+                try {
+                    // For a real implementation, you would need a server-side component
+                    // or use the Web Audio API to record the speech synthesis output
+                    // This is a simplified version that just provides a download link
+                    // for demonstration purposes
+                    
+                    statusDiv.textContent = "Download feature requires server-side implementation for full functionality. This demo only simulates the download.";
+                    statusDiv.className = "status error";
+                    
+                    // In a real implementation, you would:
+                    // 1. Use the Web Audio API to capture the speech synthesis output
+                    // 2. Encode it as an audio file (e.g., WAV or MP3)
+                    // 3. Create a download link for the user
+                    
+                    // This is just a placeholder to show how it would work
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'text-to-audio.txt'; // In real implementation, this would be .wav or .mp3
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    statusDiv.textContent = "Error: " + error.message;
+                    statusDiv.className = "status error";
                 }
-                
-                // Note: The Web Speech API doesn't directly support audio capture
-                // This is a limitation - in a real app you'd need a server-side solution
-                showStatus('Download requires server-side processing. Try recording your browser audio with external tools.', 'error');
-                
-                // Alternative: Use the Web Audio API (more complex implementation needed)
-                // This would require setting up a complete audio capture system
             });
             
-            // Check for text input
-            textInput.addEventListener('input', function() {
-                if (textInput.value.trim() === '') {
-                    playBtn.disabled = true;
-                } else {
-                    playBtn.disabled = false;
-                }
-            });
+            // Initialize Web Audio API
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                statusDiv.textContent = "Web Audio API is not supported in your browser";
+                statusDiv.className = "status error";
+                statusDiv.style.display = "block";
+            }
         });
     </script>
 </body>
